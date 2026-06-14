@@ -37,6 +37,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'restframework',
+    'channels'
+    'textxhat',
+    'accounts',
+    'chat',
 ]
 
 MIDDLEWARE = [
@@ -114,4 +119,33 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR/'static']
+
+# Media files - user uploaded files like profile pictures
+MEDIA_URL ='/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Custom user model - using our own user instead of Django's default
+AUTH_USER_MODEL ='accounts.CustomUser'
+
+# Django Channels - Redis as message broker for WebSocket real-time communication
+CHANNEL_LAYERS = {
+    'default':{
+      'BACKEND':'channels_redis.core.RedisChannelLayer',
+      'CONFIG' : {
+          'hosts': [('127.0.0.1',6379)],
+      },
+    },
+}
+
+# Django REST Framework - API authentication and permissions
+REST_FRAMEWORK ={
+    'DEFAULT_AUTHENTICATION_CLASSES':(
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+
+    ),
+    'DEFAULT_PERMISSION_CLASSES':(
+        'rest_framework.permissionS.IsAuthenticated',
+    ),
+}
