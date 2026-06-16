@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import CustomUser
+from .models import CustomUser,OTPVerification
 
 @admin.register(CustomUser)#for registring customuser in admin panel 
 class CustomUserAdmin(UserAdmin):
@@ -10,4 +10,6 @@ class CustomUserAdmin(UserAdmin):
         ('Extra_Info',{'fields':('phone_number','profile_picture','bio','is_online','last_seen')}),
     )
 
-
+@admin.register(OTPVerification)
+class OTPVerificationAdmin(admin.ModelAdmin):
+    list_display = ('user' , 'otp' , 'created_at', 'is_verified')
