@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+from decouple import config #decouple is for separating the settings from my main code
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -37,9 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'restframework',
-    'channels'
-    'textxhat',
+    'rest_framework',
+    'channels',
+    'textchat',
     'accounts',
     'chat',
 ]
@@ -146,6 +147,32 @@ REST_FRAMEWORK ={
 
     ),
     'DEFAULT_PERMISSION_CLASSES':(
-        'rest_framework.permissionS.IsAuthenticated',
+        'rest_framework.permissions.IsAuthenticated',
     ),
+
+    'DEFALUT THROTTLE_CLASSES':[
+      'rest_framework.throttling.AnonRateThrottle',
+      'rest_framework.throttling.UserThrottle',
+    ],
+
+    'DEFAULT_THROTTLE_RATES':{
+      'anon': '5/minutes',
+      'user': '100/minutes'
+    }
 }
+
+#Email settings for OTP verification
+
+EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST='smtp.gmail.com'
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD=config('EMAIL_HOST_PASSWORD')
+
+
+# to https for more secure (hashing):
+if not DEBUG:
+   SECURE_SSL_REDIRECT =True #forces ALL requests to use HTTPS 
+   SESSION_COOKIE_SECURE = True #COOKIE = small piece of data stored in user's browser
+   CSRF_COOKIE_SECURE = True # validation , session cookie only sents https - never over http 

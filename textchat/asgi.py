@@ -15,7 +15,7 @@ import chat.routing
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE','textchat.settings')
 
-application = ProtocolTypeRouter({
+application = ProtocolTypeRouter({ #to cheack wheather it's a http or websocket request
    'http': get_asgi_application(),
    'websocket': AuthMiddlewareStack(
      URLRouter(
