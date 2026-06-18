@@ -25,6 +25,8 @@ class RegisterSerializer(serializers.Serializer):
 
    #username format rules!
    def validate_username(self, value):
+       
+
        if CustomUser.objects.filter(username=value).exists():
            raise serializers.ValidationError("Username already exists")
       
@@ -96,3 +98,8 @@ class RegisterSerializer(serializers.Serializer):
        )
        return user
            
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['username','email','phone_number','profile_picture','bio', 'first_name','last_name']
+        read_only_fields = ['email']

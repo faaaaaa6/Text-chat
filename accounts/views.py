@@ -4,8 +4,13 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from django.core.mail import send_mail
 from django.conf import settings
-from .serializers import RegisterSerializer
+from .serializers import RegisterSerializer,ProfileSerializer
 from .models import CustomUser , OTPVerification
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import TokenError
+from django.contrib.auth import authenticate
+
+
 
 #API FOR REGISTER 
 class RegisterView(APIView):
@@ -38,6 +43,7 @@ class RegisterView(APIView):
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST
         )
+    
 # RESENDING THE OTP TO USER IF NOT GOT FOR THE FIRST REQUEST:
 
 class ResendOTPView(APIView):
@@ -112,3 +118,82 @@ class VerifyOTPView(APIView):
         return Response({
             'message': 'Account verfied successfully! You can now login.'
         }, status=status.HTTP_200_OK)    
+    
+#login view
+class LoginView(APIView):
+    permission_classes =[AllowAny]
+
+    def post(self,request):
+        login_input = request.data.get('login')
+        password = request.data.get('password')
+
+        if '@' in login_input:
+            try:
+                user = CustomUser.objects.get(email=login_input)
+
+            except CustomUser.DoesNotExist:
+                return Response({'error': 'invalid credentials'},status=status.HTTP_401_UNAUTHORIZED) 
+        elif login_input.isdigit():
+            try:
+                user = CustomUser.objects.get(phone_number=login_input)
+            except CustomUser.DoesNotExist:
+                return Response({'error': 'Invalid credentials'} ,status=status.HTTP_401_UNAUTHORIZED)
+               
+        else:
+            try:
+                user = CustomUser.objects.get(username=login_input)
+            except CustomUser.DoesNotExist:
+                return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if not user.check_password(password):
+            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if not user.is_active:
+            return Response({'error': 'Account not verified. check your email for OTP'},status=status.HTTP_403_FORBIDDEN) 
+
+        refresh = RefreshToken.for_user(user)
+
+        return Response({
+            'message': 'Login Successfull',
+            'username': user.username,
+            'access_token': str(refresh.access_token),
+            'refresh_token': str(refresh)
+
+        }, status=status.HTTP_200_OK) 
+            
+# logout view 
+                      
+class LogoutView(APIView):
+    def post(self,request):
+        try:
+            refresh_token = request.data.get('refresh_token')
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response({
+                'message': 'Logged out successfully'
+            }, status=status.HTTP_200_OK)
+        except TokenError:
+            return Response({
+                'error': 'Invalid token'
+            },status=status.HTTP_400_BAD_REQUEST)
+            
+
+    
+class ProfileView(APIView):
+    def get(self,request):
+        serializer = ProfileSerializer(request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class UpdateProfileView(APIView):
+    def put(self,request):
+        serializer = ProfileSerializer(request.user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'message': 'profile updated successfully',
+                'data':serializer.data
+            }, status=status.HTTP_200_OK)
+    
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            
