@@ -1,14 +1,15 @@
 from rest_framework import status 
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny,IsAuthenticated
 from django.core.mail import send_mail
 from django.conf import settings
-from .serializers import RegisterSerializer,ProfileSerializer
+from .serializers import RegisterSerializer,ProfileSerializer,ChangePasswordSerializer
 from .models import CustomUser , OTPVerification
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from django.contrib.auth import authenticate
+
 
 
 
@@ -196,4 +197,33 @@ class UpdateProfileView(APIView):
     
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class ChangePasswordView(APIView):
+    permission_classes =[IsAuthenticated]
+
+    def post(self,request):
+        serializer = ChangePasswordSerializer(data=request.data)
+
+        if not serializer.is_valid():
+            return Response({'message':'invalid input'},status=status.HTTP_400_BAD_REQUEST)
+        
+        user = request.user
+
+        old_password = serializer.validated_data["old_password"]
+        new_password = serializer.validated_data['new_password']
+
+        if not user.check_password(old_password):
+            return Response({
+                "error": "Old password is incorrect"
+            },status=status.HTTP_400_BAD_REQUEST)
+        
+        user.set_password(new_password)
+        user.save()
+
+        return Response({
             
+            "message": "Password changed successfully"
+        },status=status.HTTP_200_ok)
+
+     
+
+

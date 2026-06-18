@@ -62,8 +62,18 @@ class RegisterSerializer(serializers.Serializer):
    #password double check rules!
 
    def validate(self, data):
-       if data['password'] !=data['password2']:
+       password = data.get("password")
+       password2 = data.get("password2")
+
+       if not password or not password2:
+           raise serializers.ValidationError({"password":"password field are required"})
+
+       if password != password2:
            raise serializers.ValidationError({"password": "Password don't match"})
+       
+       if len(password) < 8:
+           raise serializers.ValidationError({"password":"Password must be at least 8 characters long"})
+       
        return data
    
    #first and second name rules
@@ -103,3 +113,30 @@ class ProfileSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = ['username','email','phone_number','profile_picture','bio', 'first_name','last_name']
         read_only_fields = ['email']
+
+# class for changing the password after user login
+
+class ChangePasswordSerializer(serializers.Serializer):
+        old_password = serializers.CharField(required=True, write_only=True)
+        new_password = serializers.CharField(
+            required=True,
+            write_only=True,
+            validators=[validate_password]
+        )
+        new_password2 = serializers.CharField(required=True,write_only=True)
+        
+        def validate(self,data):
+            if data['new_password'] !=data['new_password2']:
+                raise serializers.ValidationError({
+                    "new_password": "Password don't match"
+                })
+            if len(data['new_password']) < 8:
+                 raise serializers.ValidationError({
+                "new_password": "Password must be at least 8 characters"
+                 })
+            return data
+
+
+    
+
+      
