@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
-
+from datetime import timedelta
 from pathlib import Path
 from decouple import config #decouple is for separating the settings from my main code
 
@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'textchat',
     'accounts',
     'chat',
+    'rest_framework_simplejwt.token_blacklist',
 ]
 
 MIDDLEWARE = [
@@ -161,6 +162,14 @@ REST_FRAMEWORK ={
     }
 }
 
+#jwt tokens for login /logout
+SIMPLE_JWT ={
+   'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+   'REFRESH_TOkEN_LIFETIME':timedelta(days=7),
+   'ROTATE_REFRESH_TOKENS':True,
+   'BLACKLIST_AFTER_ROTATION': True
+}
+
 #Email settings for OTP verification
 
 EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'
@@ -176,3 +185,4 @@ if not DEBUG:
    SECURE_SSL_REDIRECT =True #forces ALL requests to use HTTPS 
    SESSION_COOKIE_SECURE = True #COOKIE = small piece of data stored in user's browser
    CSRF_COOKIE_SECURE = True # validation , session cookie only sents https - never over http 
+
