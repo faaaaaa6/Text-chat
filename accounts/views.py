@@ -9,6 +9,7 @@ from .models import CustomUser , OTPVerification
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
 from django.contrib.auth import authenticate
+from django.db.models import Q
 
 
 
@@ -224,6 +225,17 @@ class ChangePasswordView(APIView):
             "message": "Password changed successfully"
         },status=status.HTTP_200_ok)
 
+class SearchUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self , request):
+        query = request.query_params.get('search','')
+        users = CustomUser.objects.filter(
+            Q(username__icontains=query) | Q(email__icontains=query)
+        ) .exclude(id=request.user.id)
+
+        serializer = ProfileSerializer(users, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
      
 
 
