@@ -1,0 +1,51 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang ="eng">
+
+<head>
+    <title>TEXT-CHAT</title>
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+
+</head>
+<body>
+  
+    <div class = "login-container">
+        <h1>TextChat</h1>
+        <p class="tagline">Real conversations, real-time. Anywhere, anytime.</p>
+    
+        <form>
+            <input type="text" placeholder= "Username / Email / Phone" required>
+            <input type="password" placeholder= "password" required>
+            <button type="submit">Login</button>
+        </form> 
+        
+        <p><a href="#">Forget Password?</a></p>
+        <p>Don't have an account? <a href="#">Created Account</a></p>    
+    </div>
+
+    <script>
+    document.querySelector('form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = {
+            login: document.querySelector('input[type="text"]').value,
+            password: document.querySelector('input[type="password"]').value
+        };
+
+        fetch('/api/v1/accounts/login/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            alert(JSON.stringify(data));
+        });
+    });
+    </script>
+
+</body>
+</html>
